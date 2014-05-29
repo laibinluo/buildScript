@@ -1,0 +1,1 @@
+0 * * * * gerrit cd /home/gerrit/review && flock -xn lock -c /home/gerrit/bin/ppbox/amlogic/update-ppbox.sh > update.log 2>&1

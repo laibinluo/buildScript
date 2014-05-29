@@ -1,0 +1,40 @@
+#!/bin/sh -x
+
+# patchset-created --change <change id> --is-draft <boolean> --change-url <change url> --project <project name> --branch <branch> --topic <topic> --uploader <uploader> --commit <sha1> --patchset <patchset id>
+
+logfile=/home/gerrit/review/patchset-created.log
+
+echo date: $(date) >> ${logfile}
+echo patchset-created $* >> ${logfile}
+
+while test -n "$1"; do
+  case $1 in
+    --project)
+      project=$2;
+      shift 2;;
+    --commit)
+      commit=$2;
+      shift 2;;
+    *)
+      shift 1;;
+  esac
+done
+
+echo project=${project}
+echo commit=${commit}
+
+if [[ "${project}" =~ '^ppbox/amlogic/' ]]; then
+  message=$(git log --pretty=format:%s -1 ${commit})
+  echo "message=${message}" >> ${logfile}
+  if [[ "${message}" =~ '^\[PPBOX-([0-9]{3,5})\] ' ]]; then
+    bugid=${BASH_REMATCH[1]}
+    ssh checker gerrit review -p ${project} ${commit} --code-review 0 --message "\"This patch is relevant to BUG http://bugfree:8989/browse/PPBOX-${bugid}\""
+  else
+    echo "Commit message does not meet the desired format: [PPBOX-###] message" >> ${logfile}
+    ssh checker gerrit review -p ${project} ${commit} --code-review -2 --message '"You commit message does not meet the desired format: [PPBOX-###] message"'
+  fi
+else
+  ssh checker gerrit review -p ${project} ${commit} --verified +1
+fi
+
+echo "------------------------------------------------" >> ${logfile}

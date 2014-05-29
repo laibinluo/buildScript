@@ -1,0 +1,40 @@
+#!/bin/sh -x
+
+# change-merged --change <change id> --change-url <change url> --project <project name> --branch <branch> --topic <topic> --submitter <submitter> --commit <sha1>
+
+logfile=/home/gerrit/review/change-merged.log
+
+echo date: $(date) >> ${logfile}
+echo patchset-created $* >> ${logfile}
+
+while test -n "$1"; do
+  case $1 in
+    --change-url)
+      change_url=$2;
+      shift 2;;
+    --project)
+      project=$2;
+      shift 2;;
+    --commit)
+      commit=$2;
+      shift 2;;
+      shift 2;;
+    *)
+      shift 1;;
+  esac
+done
+
+echo change-url=${change_url}
+echo project=${project}
+echo commit=${commit}
+
+if [[ "${project}" =~ '^ppbox/amlogic/' ]]; then
+  message=$(git log --pretty=format:%s -1 ${commit})
+  echo "message=${message}" >> ${logfile}
+  if [[ "${message}" =~ '^\[PPBOX-([0-9]{3,5})\] ' ]]; then
+    bugid=${BASH_REMATCH[1]}
+    echo "Change Merged, To View: ${change_url}" | curl -H "Content-Type:application/json" -d "@-" -u ppbox-rom:Room1234567 http://bugfree:8989/rest/api/latest/issue/PPBOX-${bugid}/comment
+  fi
+fi
+
+echo "------------------------------------------------" >> ${logfile}

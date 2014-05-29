@@ -1,0 +1,2 @@
+0 * * * * gerrit cd /home/gerrit/review && flock -xn lock -c /home/gerrit/bin/ppbox/amlogic/update-amlogic.sh > update.log 2>&1
+* * * * * gerrit cd /home/gerrit/review && flock -xn lock -c /home/gerrit/bin/ppbox/amlogic/version.sh > version.log 2>&1
